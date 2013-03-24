@@ -19,7 +19,6 @@
 *****************************************************************************/
 
 
-
 #include "vivante_common.h"
 #include "vivante.h"
 #include "vivante_exa.h"
@@ -54,9 +53,8 @@ static const OptionInfoRec *VivAvailableOptions(int chipid, int busid);
 static void VivIdentify(int flags);
 static Bool VivProbe(DriverPtr drv, int flags);
 static Bool VivPreInit(ScrnInfoPtr pScrn, int flags);
-static Bool VivScreenInit(int Index, ScreenPtr pScreen, int argc,
-        char **argv);
-static Bool VivCloseScreen(int scrnIndex, ScreenPtr pScreen);
+static Bool VivScreenInit(SCREEN_INIT_ARGS_DECL);
+static Bool VivCloseScreen(CLOSE_SCREEN_ARGS_DECL);
 static Bool VivDriverFunc(ScrnInfoPtr pScrn, xorgDriverFuncOp op,
         pointer ptr);
 
@@ -178,7 +176,7 @@ VivSetup(pointer module, pointer opts, int *errmaj, int *errmin) {
 
 static Bool InitExaLayer(ScreenPtr pScreen) {
     ExaDriverPtr pExa;
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     VivPtr pViv = GET_VIV_PTR(pScrn);
 
     TRACE_ENTER();
@@ -274,7 +272,7 @@ static Bool InitExaLayer(ScreenPtr pScreen) {
 }
 
 static Bool DestroyExaLayer(ScreenPtr pScreen) {
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     VivPtr pViv = GET_VIV_PTR(pScrn);
     TRACE_ENTER();
     xf86DrvMsg(pScreen->myNum, X_INFO, "Shutdown EXA\n");
@@ -590,7 +588,7 @@ VivPreInit(ScrnInfoPtr pScrn, int flags) {
 static Bool
 VivCreateScreenResources(ScreenPtr pScreen) {
     PixmapPtr pPixmap;
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     VivPtr fPtr = GET_VIV_PTR(pScrn);
     Bool ret;
 
@@ -612,8 +610,8 @@ VivCreateScreenResources(ScreenPtr pScreen) {
 }
 
 static Bool
-VivScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv) {
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+VivScreenInit(SCREEN_INIT_ARGS_DECL) {
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     VivPtr fPtr = GET_VIV_PTR(pScrn);
     VisualPtr visual;
     int init_picture = 0;
@@ -631,7 +629,7 @@ VivScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv) {
 
     /*Mapping the Video memory*/
     if (NULL == (fPtr->mFB.mFBMemory = fbdevHWMapVidmem(pScrn))) {
-        xf86DrvMsg(scrnIndex, X_ERROR, "mapping of video memory"
+        xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "mapping of video memory"
                 " failed\n");
         TRACE_EXIT(FALSE);
     }
@@ -647,11 +645,11 @@ VivScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv) {
 
     /*Init the hardware in current mode*/
     if (!fbdevHWModeInit(pScrn, pScrn->currentMode)) {
-        xf86DrvMsg(scrnIndex, X_ERROR, "mode initialization failed\n");
+        xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "mode initialization failed\n");
         TRACE_EXIT(FALSE);
     }
     fbdevHWSaveScreen(pScreen, SCREEN_SAVER_ON);
-    fbdevHWAdjustFrame(scrnIndex, 0, 0, 0);
+    fbdevHWAdjustFrame(FBDEVHWADJUSTFRAME_ARGS(0, 0));
 
 
 
@@ -659,7 +657,7 @@ VivScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv) {
     miClearVisualTypes();
     if (pScrn->bitsPerPixel > 8) {
         if (!miSetVisualTypes(pScrn->depth, TrueColorMask, pScrn->rgbBits, TrueColor)) {
-            xf86DrvMsg(scrnIndex, X_ERROR, "visual type setup failed"
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "visual type setup failed"
                     " for %d bits per pixel [1]\n",
                     pScrn->bitsPerPixel);
             TRACE_EXIT(FALSE);
@@ -668,14 +666,14 @@ VivScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv) {
         if (!miSetVisualTypes(pScrn->depth,
                 miGetDefaultVisualMask(pScrn->depth),
                 pScrn->rgbBits, pScrn->defaultVisual)) {
-            xf86DrvMsg(scrnIndex, X_ERROR, "visual type setup failed"
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "visual type setup failed"
                     " for %d bits per pixel [2]\n",
                     pScrn->bitsPerPixel);
             TRACE_EXIT(FALSE);
         }
     }
     if (!miSetPixmapDepths()) {
-        xf86DrvMsg(scrnIndex, X_ERROR, "pixmap depth setup failed\n");
+        xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "pixmap depth setup failed\n");
         return FALSE;
     }
 
@@ -684,14 +682,14 @@ VivScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv) {
     pScrn->displayWidth = fbdevHWGetLineLength(pScrn) /
             (pScrn->bitsPerPixel / 8);
     if (pScrn->displayWidth != pScrn->virtualX) {
-        xf86DrvMsg(scrnIndex, X_INFO,
+        xf86DrvMsg(pScrn->scrnIndex, X_INFO,
                 "Pitch updated to %d after ModeInit\n",
                 pScrn->displayWidth);
     }
     /*Logical start address*/
     fPtr->mFB.mFBStart = fPtr->mFB.mFBMemory + fPtr->mFB.mFBOffset;
 
-    xf86DrvMsg(scrnIndex, X_INFO,
+    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
             "FB Start = %p  FB Base = %p  FB Offset = %p\n",
             fPtr->mFB.mFBStart, fPtr->mFB.mFBMemory, fPtr->mFB.mFBOffset);
 
@@ -708,7 +706,7 @@ VivScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv) {
             init_picture = 1;
             break;
         default:
-            xf86DrvMsg(scrnIndex, X_ERROR,
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
                     "internal error: invalid number of bits per"
                     " pixel (%d) encountered in"
                     " VivScreenInit()\n", pScrn->bitsPerPixel);
@@ -740,7 +738,7 @@ VivScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv) {
     if (fPtr->mFakeExa.mUseExaFlag) {
         TRACE_INFO("Loading EXA");
         if (!InitExaLayer(pScreen)) {
-            xf86DrvMsg(scrnIndex, X_ERROR,
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
                     "internal error: initExaLayer failed "
                     "in VivScreenInit()\n");
         }
@@ -759,7 +757,7 @@ VivScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv) {
 
     /* colormap */
     if (!miCreateDefColormap(pScreen)) {
-        xf86DrvMsg(scrnIndex, X_ERROR,
+        xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
                 "internal error: miCreateDefColormap failed "
                 "in VivScreenInit()\n");
         TRACE_EXIT(FALSE);
@@ -799,18 +797,18 @@ VivScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv) {
 }
 
 static Bool
-VivCloseScreen(int scrnIndex, ScreenPtr pScreen) {
-    ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
+VivCloseScreen(CLOSE_SCREEN_ARGS_DECL) {
+    CLOSE_SCREEN_DECL_ScrnInfoPtr;
     VivPtr fPtr = GET_VIV_PTR(pScrn);
     Bool ret = FALSE;
     TRACE_ENTER();
 
-    VivDRICloseScreen(pScreen);
+    VivDRICloseScreen(CLOSE_SCREEN_ARGS);
 
     if (fPtr->mFakeExa.mUseExaFlag) {
         DEBUGP("UnLoading EXA");
         if (fPtr->mFakeExa.mIsInited && !DestroyExaLayer(pScreen)) {
-            xf86DrvMsg(scrnIndex, X_ERROR,
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
                     "internal error: DestroyExaLayer failed "
                     "in VivCloseScreen()\n");
         }
@@ -823,7 +821,7 @@ VivCloseScreen(int scrnIndex, ScreenPtr pScreen) {
 
     pScreen->CreateScreenResources = fPtr->CreateScreenResources;
     pScreen->CloseScreen = fPtr->CloseScreen;
-    ret = (*pScreen->CloseScreen)(scrnIndex, pScreen);
+    ret = (*pScreen->CloseScreen)(CLOSE_SCREEN_ARGS);
     TRACE_EXIT(ret);
 }
 

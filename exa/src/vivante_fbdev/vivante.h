@@ -99,11 +99,11 @@ extern "C" {
 #define GET_VIV_PTR(p) ((VivPtr)((p)->driverPrivate))
 
 #define VIVPTR_FROM_PIXMAP(x)		\
-		GET_VIV_PTR(xf86Screens[(x)->drawable.pScreen->myNum])
+		GET_VIV_PTR(xf86ScreenToScrn((x)->drawable.pScreen))
 #define VIVPTR_FROM_SCREEN(x)		\
-		GET_VIV_PTR(xf86Screens[(x)->myNum])
+		GET_VIV_PTR(xf86ScreenToScrn((x)))
 #define VIVPTR_FROM_PICTURE(x)	\
-		GET_VIV_PTR(xf86Screens[(x)->pDrawable->pScreen->myNum])
+		GET_VIV_PTR(xf86ScreenToScrn((x)->pDrawable->pScreen))
 
     /********************************************************************************
      *

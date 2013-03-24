@@ -76,13 +76,16 @@ extern "C" {
 #include "xf86Crtc.h"
 #include "cursorstr.h"
 
+    /* System API compatability */
+#include "compat-api.h"
+
     /*Debug*/
 #include "vivante_debug.h"
 
 #define V_MIN(a,b) ((a)>(b)?(b):(a))
 #define V_MAX(a,b) ((a)>(b)?(a):(b))
 
-#define USE_GPU_FB_MEM_MAP 1
+#define USE_GPU_FB_MEM_MAP 0
 
 #define WIDTH_ALIGNMENT 8
 #define HEIGHT_ALIGNMENT 1

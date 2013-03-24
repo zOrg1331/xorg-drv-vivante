@@ -49,7 +49,7 @@ VivDestroyContext(ScreenPtr pScreen, drm_context_t hwContext,
 
 Bool
 VivDRIFinishScreenInit(ScreenPtr pScreen) {
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     VivPtr pViv = GET_VIV_PTR(pScrn);
     DRIInfoPtr pDRIInfo = (DRIInfoPtr) pViv->pDRIInfo;
 
@@ -79,7 +79,7 @@ VivDRIMoveBuffers(WindowPtr pParent, DDXPointRec ptOldOrg,
 }
 
 Bool VivDRIScreenInit(ScreenPtr pScreen) {
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     DRIInfoPtr pDRIInfo;
     VivPtr pViv = GET_VIV_PTR(pScrn);
 
@@ -185,7 +185,7 @@ Bool VivDRIScreenInit(ScreenPtr pScreen) {
 }
 
 void VivDRICloseScreen(ScreenPtr pScreen) {
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     VivPtr pViv = GET_VIV_PTR(pScrn);
 
     if (pViv->pDRIInfo) {

@@ -67,7 +67,7 @@ typedef struct _vvtDeviceInfoRec {
 } vvtDeviceInfo;
 
 Bool VivDRIScreenInit(ScreenPtr pScreen);
-void VivDRICloseScreen(ScreenPtr pScreen);
+void VivDRICloseScreen(CLOSE_SCREEN_ARGS_DECL);
 Bool VivDRIFinishScreenInit(ScreenPtr pScreen);
 
 #endif /* _VIVANTE_DRI_H_ */
