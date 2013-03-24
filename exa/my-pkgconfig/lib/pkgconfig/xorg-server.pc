@@ -1,0 +1,12 @@
+prefix=$(MY_ROOTFS)/usr
+exec_prefix=$(MY_ROOTFS)/usr
+libdir=$(MY_ROOTFS)/usr/lib
+includedir=$(MY_ROOTFS)/usr/include
+moduledir=$(MY_ROOTFS)/usr/lib/xorg/modules
+sdkdir=$(MY_ROOTFS)/usr/include/xorg
+
+Name: xorg-server
+Description: Modular X.Org X Server
+Version: 1.1.0
+Cflags: -I$(includedir) -I${sdkdir}  -DXFree86Server  -DIN_MODULE -DXFree86Module  -DXFree86LOADER
+Libs: -L${libdir}
