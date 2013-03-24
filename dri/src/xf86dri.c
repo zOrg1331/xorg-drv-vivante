@@ -112,11 +112,11 @@ ProcXF86DRIQueryVersion(
     rep.minorVersion = SERVER_XF86DRI_MINOR_VERSION;
     rep.patchVersion = SERVER_XF86DRI_PATCH_VERSION;
     if (client->swapped) {
-    	swaps(&rep.sequenceNumber, n);
-    	swapl(&rep.length, n);
-	swaps(&rep.majorVersion, n);
-	swaps(&rep.minorVersion, n);
-	swapl(&rep.patchVersion, n);
+    	swaps(&rep.sequenceNumber);
+    	swapl(&rep.length);
+	swaps(&rep.majorVersion);
+	swaps(&rep.minorVersion);
+	swapl(&rep.patchVersion);
     }
     WriteToClient(client, sizeof(xXF86DRIQueryVersionReply), (char *)&rep);
     return Success;
@@ -152,8 +152,8 @@ ProcXF86DRIQueryDirectRenderingCapable(
 	rep.isCapable = 0;
 
     if (client->swapped) {
-    	swaps(&rep.sequenceNumber, n);
-    	swapl(&rep.length, n);
+    	swaps(&rep.sequenceNumber);
+    	swapl(&rep.length);
     }
 
     WriteToClient(client,
@@ -613,7 +613,7 @@ SProcXF86DRIQueryVersion(
 {
     register int n;
     REQUEST(xXF86DRIQueryVersionReq);
-    swaps(&stuff->length, n);
+    swaps(&stuff->length);
     return ProcXF86DRIQueryVersion(client);
 }
 
@@ -624,8 +624,8 @@ SProcXF86DRIQueryDirectRenderingCapable(
 {
     register int n;
     REQUEST(xXF86DRIQueryDirectRenderingCapableReq);
-    swaps(&stuff->length, n);
-    swapl(&stuff->screen, n);
+    swaps(&stuff->length);
+    swapl(&stuff->screen);
     return ProcXF86DRIQueryDirectRenderingCapable(client);
 }
 

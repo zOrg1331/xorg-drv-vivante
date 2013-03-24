@@ -83,11 +83,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "mipointer.h"
 #include "xf86_OSproc.h"
 #include "inputstr.h"
-#include "xf86VGAarbiter.h"
+//#include "xf86VGAarbiter.h"
 #include "pixmapstr.h"
 #include "pixmap.h"
 #include "vivante_priv.h"
 #include "vivante_gal.h"
+
+#include <compat-api.h>
 
 #define WIDTH_ALIGNMENT  8
 #define HEIGHT_ALIGNMENT 1
@@ -106,7 +108,8 @@ static void    DRIDestroyDummyContext(ScreenPtr pScreen, Bool hasCtxPriv);
 
 drmServerInfo DRIDRMServerInfo;
 
-extern Bool noXFree86DRIExtension;
+//extern Bool noXFree86DRIExtension;
+Bool noXFree86DRIExtension = TRUE;
 
 				/* Wrapper just like xf86DrvMsg, but
 				   without the verbosity level checking.
@@ -1675,7 +1678,7 @@ DRIWakeupHandler(pointer wakeupData, int result, pointer pReadmask)
 
 	if (pDRIPriv &&
 	    pDRIPriv->pDriverInfo->wrap.WakeupHandler)
-	    (*pDRIPriv->pDriverInfo->wrap.WakeupHandler)(i, wakeupData,
+	    (*pDRIPriv->pDriverInfo->wrap.WakeupHandler)(pScreen, 
 							 result, pReadmask);
     }
 }
@@ -1688,11 +1691,11 @@ DRIBlockHandler(pointer blockData, OSTimePtr pTimeout, pointer pReadmask)
     for (i = 0; i < screenInfo.numScreens; i++) {
 	ScreenPtr        pScreen  = screenInfo.screens[i];
 	DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
+	ScreenPtr	arg = pScreen;
 
 	if (pDRIPriv &&
 	    pDRIPriv->pDriverInfo->wrap.BlockHandler)
-	    (*pDRIPriv->pDriverInfo->wrap.BlockHandler)(i, blockData,
-							pTimeout, pReadmask);
+	    (*pDRIPriv->pDriverInfo->wrap.BlockHandler)(BLOCKHANDLER_ARGS);
     }
 }
 
@@ -2383,7 +2386,7 @@ DRIAdjustFrame(int scrnIndex, int x, int y, int flags)
 	/* unwrap */
 	pScrn->AdjustFrame = pDRIPriv->wrap.AdjustFrame;
 	/* call lower layers */
-	(*pScrn->AdjustFrame)(scrnIndex, x, y, flags);
+	(*pScrn->AdjustFrame)(FBDEVHWADJUSTFRAME_ARGS(x, y));
 	/* rewrap */
 	pDRIPriv->wrap.AdjustFrame = pScrn->AdjustFrame;
 	pScrn->AdjustFrame         = DRIAdjustFrame;
