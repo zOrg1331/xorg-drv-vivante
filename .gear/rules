@@ -1,0 +1,2 @@
+tar: @version@:.
+diff: @version@:. .
